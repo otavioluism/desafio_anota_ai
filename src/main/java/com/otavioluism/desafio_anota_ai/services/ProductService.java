@@ -26,13 +26,12 @@ public class ProductService {
     private AwsSnsService snsService;
 
     public Product insert(ProductDTO productData){
-        Category category = this.categoryService.getById(productData.categoryId())
+        this.categoryService.getById(productData.categoryId())
                 .orElseThrow(CategoryNotFoundException::new);
 
         Product newProduct = new Product(productData);
-        newProduct.setCategory(category);
         this.productRepository.save(newProduct);
-        this.snsService.publish(new MessageTopicDTO(newProduct.getOwnerId()));
+        this.snsService.publish(new MessageTopicDTO(newProduct.toString()));
         return newProduct;
     }
 
@@ -45,7 +44,10 @@ public class ProductService {
                 .orElseThrow(ProductNotFoundException::new);
 
         if(productData.categoryId() != null){
-            this.categoryService.getById(productData.categoryId()).ifPresent(product::setCategory);
+            this.categoryService.getById(productData.categoryId()).ifPresentOrElse(
+                    category -> {product.setCategory(category.getId());},
+                    () -> {throw new CategoryNotFoundException();}
+            );
         }
 
         if (!productData.title().isEmpty()) product.setTitle(productData.title());
@@ -54,7 +56,7 @@ public class ProductService {
 
         this.productRepository.save(product);
 
-        this.snsService.publish(new MessageTopicDTO(product.getOwnerId()));
+        this.snsService.publish(new MessageTopicDTO(product.toString()));
 
         return product;
     }

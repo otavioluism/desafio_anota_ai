@@ -1,6 +1,8 @@
 package com.otavioluism.desafio_anota_ai.services;
 
+import com.amazonaws.services.sns.AmazonSNS;
 import com.otavioluism.desafio_anota_ai.DTOs.CategoryDTO;
+import com.otavioluism.desafio_anota_ai.DTOs.MessageTopicDTO;
 import com.otavioluism.desafio_anota_ai.entities.category.Category;
 import com.otavioluism.desafio_anota_ai.repositories.CategoryRepository;
 import com.otavioluism.desafio_anota_ai.exceptions.CategoryNotFoundException;
@@ -16,9 +18,13 @@ public class CategoryService {
     @Autowired
     private CategoryRepository categoryRepository;
 
+    @Autowired
+    private AwsSnsService snsService;
+
     public Category insert(CategoryDTO categoryData){
         Category newCategory = new Category(categoryData);
         this.categoryRepository.save(newCategory);
+        this.snsService.publish(new MessageTopicDTO(newCategory.toString()));
         return newCategory;
     }
 
@@ -34,6 +40,8 @@ public class CategoryService {
         if (!categoryData.description().isEmpty()) category.setDescription(categoryData.description());
 
         this.categoryRepository.save(category);
+
+        this.snsService.publish(new MessageTopicDTO(category.toString()));
 
         return category;
     }

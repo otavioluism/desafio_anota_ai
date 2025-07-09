@@ -4,6 +4,8 @@ package com.otavioluism.desafio_anota_ai.entities.category;
 import com.otavioluism.desafio_anota_ai.DTOs.CategoryDTO;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.bson.json.JsonObject;
+import org.json.JSONObject;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 
@@ -24,4 +26,15 @@ public class Category {
         this.description = categoryData.description();
     }
 
+    @Override
+    public String toString(){
+        JSONObject json = new JSONObject();
+        json.put("id", this.id);
+        json.put("title", this.title);
+        json.put("ownerId", this.ownerId);
+        json.put("description", this.description);
+        json.put("type", "category");
+
+        return json.toString();
+    }
 }
