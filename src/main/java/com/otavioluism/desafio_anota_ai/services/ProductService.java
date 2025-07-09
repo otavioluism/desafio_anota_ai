@@ -1,6 +1,7 @@
 package com.otavioluism.desafio_anota_ai.services;
 
 import com.otavioluism.desafio_anota_ai.DTOs.CategoryDTO;
+import com.otavioluism.desafio_anota_ai.DTOs.MessageTopicDTO;
 import com.otavioluism.desafio_anota_ai.DTOs.ProductDTO;
 import com.otavioluism.desafio_anota_ai.entities.category.Category;
 import com.otavioluism.desafio_anota_ai.entities.product.Product;
@@ -21,6 +22,9 @@ public class ProductService {
     @Autowired
     private CategoryService categoryService;
 
+    @Autowired
+    private AwsSnsService snsService;
+
     public Product insert(ProductDTO productData){
         Category category = this.categoryService.getById(productData.categoryId())
                 .orElseThrow(CategoryNotFoundException::new);
@@ -28,6 +32,7 @@ public class ProductService {
         Product newProduct = new Product(productData);
         newProduct.setCategory(category);
         this.productRepository.save(newProduct);
+        this.snsService.publish(new MessageTopicDTO(newProduct.getOwnerId()));
         return newProduct;
     }
 
@@ -48,6 +53,8 @@ public class ProductService {
         if (!(productData.price() == null)) product.setPrice(productData.price());
 
         this.productRepository.save(product);
+
+        this.snsService.publish(new MessageTopicDTO(product.getOwnerId()));
 
         return product;
     }
